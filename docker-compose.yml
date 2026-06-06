@@ -1,15 +1,17 @@
-version: '3.8'
-services:
-  db:
-    image: postgres
-    environment:
-      POSTGRES_DB: neobank
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+FROM maven:3.9-eclipse-temurin-17 AS build
 
-  kafka:
-    image: bitnami/kafka
-    ports:
-      - "9092:9092"
+WORKDIR /app
+
+COPY . .
+
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
